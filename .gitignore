@@ -1,3 +1,4 @@
+
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 # dependencies
@@ -30,7 +31,21 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDE
+.idea/
+
+# logs
+*.log
+
+# test coverage
+coverage/
+
 # local env files
+.env
 .env*.local
 
 # typescript
