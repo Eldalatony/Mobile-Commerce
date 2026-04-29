@@ -17,9 +17,24 @@
     "web": {
       "output": "static"
     },
-    "plugins": [
-      "expo-router"
-    ],
+  "plugins": [
+    "expo-router",
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "The app accesses your photos to let you upload product images.",
+        "cameraPermission": "The app accesses your camera to let you take product photos.",
+        "colors": {
+          "cropToolbarColor": "#000000"
+        },
+        "dark": {
+          "colors": {
+            "cropToolbarColor": "#000000"
+          }
+        }
+      }
+    ]
+  ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

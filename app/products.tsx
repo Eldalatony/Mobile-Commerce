@@ -10,6 +10,8 @@ import {
 import { Stack, useRouter } from 'expo-router';
 import { supabase } from '../utils/supabase';
 
+
+
 type Product = {
   id: number;
   name: string;
