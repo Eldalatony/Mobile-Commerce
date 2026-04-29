@@ -1,22 +1,11 @@
 import { useState } from 'react';
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
-} from 'react-native';
+import { View, Text, TextInput, Button, Alert, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../utils/supabase';
 
-type Mode = 'login' | 'signup';
-
 export default function AuthScreen() {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>('login');
+  const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,16 +46,12 @@ export default function AuthScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
       <Text style={styles.title}>{mode === 'login' ? 'Sign In' : 'Create Account'}</Text>
 
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#999"
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
@@ -76,7 +61,6 @@ export default function AuthScreen() {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#999"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -84,70 +68,43 @@ export default function AuthScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
-        {loading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>{mode === 'login' ? 'Sign In' : 'Sign Up'}</Text>
-        )}
-      </TouchableOpacity>
+      <Button
+        title={loading ? '...' : mode === 'login' ? 'Sign In' : 'Sign Up'}
+        onPress={handleSubmit}
+        disabled={loading}
+      />
 
-      <TouchableOpacity onPress={toggleMode} style={styles.toggle}>
-        <Text style={styles.toggleText}>
-          {mode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
-        </Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+      <View style={styles.spacer} />
+
+      <Button
+        title={mode === 'login' ? "Don't have an account? Sign Up" : 'Already have an account? Sign In'}
+        onPress={toggleMode}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    padding: 16,
     justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 32,
-    textAlign: 'center',
+    fontSize: 18,
+    marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    marginBottom: 16,
-    color: '#000',
+    borderColor: '#000',
+    padding: 8,
+    marginBottom: 12,
   },
   error: {
-    color: '#e53e3e',
-    fontSize: 14,
-    marginBottom: 12,
-    textAlign: 'center',
+    color: 'red',
+    marginBottom: 8,
   },
-  button: {
-    backgroundColor: '#3ECF8E',
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  toggle: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  toggleText: {
-    color: '#3ECF8E',
-    fontSize: 14,
+  spacer: {
+    height: 8,
   },
 });
