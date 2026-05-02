@@ -11,7 +11,10 @@ export default function Index() {
       <Button title="Upload" onPress={() => router.push('/upload')} />
       <Button title="barcode" onPress={() => router.push('/barcode')} />
       <Button title="Shopping Cart" onPress={() => router.push('/shoppingCart')} />  
-
+      <Button title="Notification" onPress={() => router.push('/notification')} />  
+      <Button title="checknetwork" onPress={() => router.push('/checknetwork')} /> 
+      <Button title="receipt" onPress={() => router.push('/receipt')} />  
+      <Button title="checkout" onPress={() => router.push('/checkout')} />     
     </View>
   );
 }

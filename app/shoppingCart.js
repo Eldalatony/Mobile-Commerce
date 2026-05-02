@@ -1,13 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  Button,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View,Text,ScrollView,Button,StyleSheet,TouchableOpacity,Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'cart';
@@ -27,8 +19,8 @@ export default function ShoppingCart() {
       if (saved) {
         setItems(JSON.parse(saved));
       }
-    } catch (e) {
-      setError(e.message);
+    } catch (exeption) {
+      setError(exeption.message);
     }
   };
 
