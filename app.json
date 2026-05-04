@@ -3,8 +3,8 @@
     "name": "my-app",
     "slug": "my-app",
     "version": "1.0.0",
+    "scheme": "shopapp",
     "orientation": "portrait",
-    "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -21,6 +21,8 @@
       "expo-router",
       [
         "expo-image-picker",
+        
+        
         {
           "photosPermission": "The app accesses your photos to let you upload product images.",
           "cameraPermission": "The app accesses your camera to let you take product photos.",
@@ -30,6 +32,7 @@
           "dark": {
             "colors": {
               "cropToolbarColor": "#000000"
+              
             }
           }
         }
@@ -41,7 +44,9 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      ["expo-localization"]
+      
     ],
     "experiments": {
       "typedRoutes": true,

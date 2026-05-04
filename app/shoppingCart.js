@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {View,Text,ScrollView,Button,StyleSheet,TouchableOpacity,Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as haptics from 'expo-haptics';
 
 const STORAGE_KEY = 'cart';
 
@@ -36,6 +37,7 @@ export default function ShoppingCart() {
       if (newItems[i].id === id) {
         newItems[i].quantity = newItems[i].quantity + 1;
         break;
+        haptics.impactAsync(haptics.ImpactFeedbackStyle.Light);
       }
     }
     await saveCart(newItems);
@@ -69,13 +71,20 @@ export default function ShoppingCart() {
   };
 
   const clearAll = () => {
+   haptics.impactAsync(haptics.ImpactFeedbackStyle.Medium);
     if (items.length === 0) return;
+
+    // 1. Hazza awel ma ydos 3al zorar el asasy
+    
+
     Alert.alert('Clear Cart', 'Remove all items?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Clear',
         onPress: async () => {
           await saveCart([]);
+          // 2. Hazza ta2keed (Success) lma el cart yfDa f3lan
+          haptics.notificationAsync(haptics.NotificationFeedbackType.Success);
         },
       },
     ]);

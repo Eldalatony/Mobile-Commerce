@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, Button, Platform, Text } from 'react-native';
+import { View, StyleSheet, Button, Platform, Text, Alert } from 'react-native';
 import * as Print from 'expo-print';
 import { shareAsync } from 'expo-sharing';
 
@@ -23,23 +23,35 @@ export default function App() {
   const [selectedPrinter, setSelectedPrinter] = useState();
 
   const print = async () => {
-    // On iOS/android prints the given html. On web prints the HTML from the current page.
-     await Print.printAsync({
-      html,
-      printerUrl: selectedPrinter?.url, // iOS only
-    }); 
+    try {
+      // On iOS/android prints the given html. On web prints the HTML from the current page.
+      await Print.printAsync({
+        html,
+        printerUrl: selectedPrinter?.url, // iOS only
+      }); 
+    } catch (error) {
+      Alert.alert('Printing Error', 'Printing was cancelled or failed.');
+    }
   };
 
   const printToFile = async () => {
-    // On iOS/android prints the given html. On web prints the HTML from the current page.
-     const { uri } = await Print.printToFileAsync({ html }); 
-    console.log('File has been saved to:', uri);
-    await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    try {
+      // On iOS/android prints the given html. On web prints the HTML from the current page.
+      const { uri } = await Print.printToFileAsync({ html }); 
+      console.log('File has been saved to:', uri);
+      await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+    } catch (error) {
+      Alert.alert('PDF Error', 'Saving or sharing PDF was cancelled.');
+    }
   };
 
   const selectPrinter = async () => {
-     const printer = await Print.selectPrinterAsync(); // iOS only
-    setSelectedPrinter(printer);
+    try {
+      const printer = await Print.selectPrinterAsync(); // iOS only
+      setSelectedPrinter(printer);
+    } catch (error) {
+      Alert.alert('Printer Selection', 'Printer selection was cancelled.');
+    }
   };
 
   return (

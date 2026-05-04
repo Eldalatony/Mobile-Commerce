@@ -1,11 +1,11 @@
-import { View, Button } from 'react-native';
+import { ScrollView, Button } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function Index() {
   const router = useRouter();
 
   return (
-    <View style={{ flex: 1, justifyContent: 'center', padding: 16, gap: 12 }}>
+    <ScrollView >
       <Button title="Auth" onPress={() => router.push('/auth')} />
       <Button title="Products" onPress={() => router.push('/products')} />
       <Button title="Upload" onPress={() => router.push('/upload')} />
@@ -14,7 +14,15 @@ export default function Index() {
       <Button title="Notification" onPress={() => router.push('/notification')} />  
       <Button title="checknetwork" onPress={() => router.push('/checknetwork')} /> 
       <Button title="receipt" onPress={() => router.push('/receipt')} />  
-      <Button title="checkout" onPress={() => router.push('/checkout')} />     
-    </View>
+      <Button title="checkout" onPress={() => router.push('/checkout')} />   
+      <Button title="battery" onPress={() => router.push('/battery')} />   
+      <Button title="feedback" onPress={() => router.push('/feedback')} />  
+      <Button title="currency" onPress={() => router.push('/currency')} />  
+      <Button title="mode automatic" onPress={() => router.push('/mode_automatic')} />  
+      <Button title="mode manual" onPress={() => router.push('/mode_manual')} />
+      <Button title="offline browsing" onPress={() => router.push('/offlinebrowsing')} /> 
+      <Button title="wish list" onPress={() => router.push('/wishlist')} />  
+      <Button title="order history" onPress={() => router.push('/order_history')} />                
+    </ScrollView>
   );
 }
