@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { View, Text, Button, Alert, StyleSheet } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { supabase } from '../utils/supabase'; 
 
 export default function Barcode() {
-  // 1. Bena5od el permissions
+  // B-n3raf el states bta3t el camera 3ashan nshoof el user wafa2 nfta7 el camera wala la2, w state tanya 3ashan n3raf e7na 3mlna scan 5alas wala lsa
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
 
-  // Lw lsa by7amel
+  // Law el app lsa by7amel w by-check el permissions, bn-zhar shasha fadya mo2aqatan l7d ma n3raf el nateega
   if (!permission) {
     return <View />;
   }
 
-  // Lw el user lsa mdash allow
+  // Law el user rafad ydy el app permission ysta5dem el camera, bn-zharlo zrar 3ashan ytlob el permission tany
   if (!permission.granted) {
     return (
       <View style={styles.container}>
@@ -22,22 +23,34 @@ export default function Barcode() {
     );
   }
 
-  // 2. El function elly btemsak el raqam lma n-scan
-  const handleBarCodeScanned = ({ type, data }) => {
+  // El function de btshta8al awel ma el camera tl2ot barcode. B-twa2af el scan, w t-dawar fel database 3ala product 3ando nafs raqam el barcode da, w b3den t-tl3 risala bel nateega
+  // 2. El function ba2et Async 3ashan n-fetch mn Supabase
+  const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    Alert.alert('Zay el fol!', `Barcode Data: ${data}`);
+
+    // Bndawar fel database 3ala el product elly el barcode bta3o howa el scanned data
+    const { data: product, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('barcode', data)
+      .single(); // single() 3ashan e7na 3ayzen product wa7ed bas
+
+    if (error || !product) {
+      Alert.alert('Not Found', `Mafeesh product fel database bel barcode da: ${data}`);
+    } else {
+      Alert.alert('Zay el fol!', `L2eena el product:\n\nName: ${product.name}\nPrice: $${product.price}`);
+    }
   };
 
+  // El UI el asasy bta3 el shasha. Fih el camera sh8ala fel background, w law 3mal scan bytl3lo zrar 3ashan y2dar y-scan tany law 7ab
   return (
     <View style={styles.container}>
-      {/* 3. Shashet el Camera mtazabata lel scan */}
       <CameraView
         style={StyleSheet.absoluteFillObject}
         facing="back"
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
       />
       
-      {/* Zorar yzhar 3ashan t-scan tany */}
       {scanned && (
         <View style={styles.buttonContainer}>
           <Button title={'Tap to Scan Again'} onPress={() => setScanned(false)} />

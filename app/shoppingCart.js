@@ -9,7 +9,7 @@ export default function ShoppingCart() {
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
 
-  // load the cart when the screen opens
+  // B-y-load el cart mn el AsyncStorage (el memory bta3t el mobile) awel ma el shasha tzhar
   useEffect(() => {
     loadCart();
   }, []);
@@ -25,12 +25,13 @@ export default function ShoppingCart() {
     }
   };
 
-  // saves to state + AsyncStorage
+  // Function bt3ml save lel array el gdeda fel State w fel AsyncStorage fe nafs el wa2t 3ashan y-update el UI w y7faz fel memory
   const saveCart = async (newItems) => {
     setItems(newItems);
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
   };
 
+  // B-t-loop 3ala el 7agat elly fel cart, w lma t-la2y el id elly el user das 3aleh, b-tzawed el quantity wa7ed w te3mel hazza 5afefa (haptic)
   const increase = async (id) => {
     const newItems = [...items];
     for (let i = 0; i < newItems.length; i++) {
@@ -43,6 +44,7 @@ export default function ShoppingCart() {
     await saveCart(newItems);
   };
 
+  // Nfs fekret el increase bas bel na2s. W law el quantity weslet le sfer aw a2al, b-temsa7 el product mn el cart 5ales
   const decrease = async (id) => {
     const newItems = [...items];
     for (let i = 0; i < newItems.length; i++) {
@@ -59,6 +61,7 @@ export default function ShoppingCart() {
     await saveCart(newItems);
   };
 
+  // B-t-dawar 3ala el product w temsa7o mn el array 3alatool mn 8eir ma t-check el quantity
   const remove = async (id) => {
     const newItems = [...items];
     for (let i = 0; i < newItems.length; i++) {
@@ -70,6 +73,7 @@ export default function ShoppingCart() {
     await saveCart(newItems);
   };
 
+  // B-t-tala3 pop-up (Alert) tet2akad mn el user eno 3ayz ymsa7 kol 7aga. Law wafe2, b-t-save array fadya [] fel cart w te3mel hazza qaweya lel ta2keed
   const clearAll = () => {
    haptics.impactAsync(haptics.ImpactFeedbackStyle.Medium);
     if (items.length === 0) return;
@@ -90,7 +94,7 @@ export default function ShoppingCart() {
     ]);
   };
 
-  // calculate totals
+  // Loop b-tlf 3ala kol 7aga fel cart 3ashan t-7seb el raqam el total bta3 el 7etat (quantity) w 2gmaty el s3r (price * quantity)
   let totalItems = 0;
   let totalPrice = 0;
   for (let i = 0; i < items.length; i++) {
@@ -98,6 +102,7 @@ export default function ShoppingCart() {
     totalPrice = totalPrice + items[i].price * items[i].quantity;
   }
 
+  // El UI bta3 el Cart. Fih list b-td-map 3ala el items w t-tl3 esm w s3r w zrayer el + w -, w ta7t 5ales el Footer elly fih el 7esba el neha2ya w zrar el Clear
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Shopping Cart</Text>

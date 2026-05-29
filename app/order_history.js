@@ -147,3 +147,6 @@ const styles = StyleSheet.create({
   itemText: { color: '#444', marginLeft: 5 },
   noItemsText: { color: '#999', fontStyle: 'italic' },
 });
+
+
+// RAWA2 3ALA EL CODE

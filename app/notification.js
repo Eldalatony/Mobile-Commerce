@@ -124,3 +124,5 @@ async function registerForPushNotificationsAsync() {
 
   return token;
 }
+
+// sheel el hagta el fe el nos el malhash lazma

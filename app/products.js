@@ -1,31 +1,28 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-// 1. Zowedna useLocalSearchParams fel import hena
+import { Button, ScrollView, StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../utils/supabase';
+import * as Haptics from 'expo-haptics'; 
 
 const STORAGE_KEY = 'cart';
 
 export default function ProductsScreen() {
   const router = useRouter();
-  // 2. El hook delwa2ty hayel2ot el ID elly gai mel link (zay: shopapp://products?id=123)
   const { id } = useLocalSearchParams();
 
+  // State initialization for managing the products array, UI loading status, error messages, and the cart badge counter.
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [cartCount, setCartCount] = useState(0);
 
-  // UseEffect 1: Fetch initial products
+  // Fetches the initial list of products from Supabase on component mount. It checks for an 'id' parameter to support deep linking and filters the query accordingly.
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      
-      // Bnebda2 el query 3ady
       let query = supabase.from('products').select();
       
-      // LAW feeh 'id' gai min el link, ne-filter el data bel id da bas
       if (id) {
         query = query.eq('id', id);
       }
@@ -43,7 +40,7 @@ export default function ProductsScreen() {
     fetchProducts();
   }, [id]);
 
-  // el REALTIME STOCK UPDATES
+  // Establishes a realtime subscription to the Supabase products table. Listens for any database updates (like stock changes) and instantly updates the local state without needing a manual refresh.
   useEffect(() => {
     const productChannel = supabase
       .channel('public:products')
@@ -51,8 +48,6 @@ export default function ProductsScreen() {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'products' },
         (payload) => {
-          console.log('Realtime change received!', payload);
-          // N-update el state bta3 el product elly et8ayar bas mn 8er refresh
           setProducts((currentProducts) =>
             currentProducts.map((product) =>
               product.id === payload.new.id ? { ...product, ...payload.new } : product
@@ -62,12 +57,12 @@ export default function ProductsScreen() {
       )
       .subscribe();
 
-    // Cleanup: Ne2fel el channel lma ntl3 mn el saf7a
     return () => {
       supabase.removeChannel(productChannel);
     };
   }, []);
 
+  // Runs every time the screen comes into focus. It reads the cart data from AsyncStorage, calculates the total number of items, and updates the cart badge.
   useFocusEffect(
     useCallback(() => {
       const loadCount = async () => {
@@ -87,9 +82,15 @@ export default function ProductsScreen() {
     }, [])
   );
 
+  // Handles adding items to the local shopping cart. It verifies stock availability, triggers a physical haptic response, updates the AsyncStorage array, and increments the local cart counter state.
   const addToCart = async (product) => {
-    
-    
+    if (product.stock_quantity <= 0) {
+      Alert.alert('Out of Stock', 'Sorry, this item is out of stock!');
+      return;
+    }
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
     const saved = await AsyncStorage.getItem(STORAGE_KEY);
     const cart = saved ? JSON.parse(saved) : [];
 
@@ -115,7 +116,10 @@ export default function ProductsScreen() {
     setCartCount(cartCount + 1);
   };
 
+  // Toggles the wishlist status of a product. It performs an optimistic UI update for instant feedback, then syncs the change to the Supabase database. If the database update fails, it reverts the local state to prevent desynchronization.
   const toggleFavourite = async (product) => {
+    Haptics.selectionAsync();
+
     const next = !product.favourite;
     setProducts((curr) =>
       curr.map((p) => (p.id === product.id ? { ...p, favourite: next } : p))
@@ -124,8 +128,8 @@ export default function ProductsScreen() {
       .from('products')
       .update({ favourite: next })
       .eq('id', product.id);
+      
     if (sbError) {
-      // revert on failure
       setProducts((curr) =>
         curr.map((p) =>
           p.id === product.id ? { ...p, favourite: !next } : p
@@ -135,6 +139,7 @@ export default function ProductsScreen() {
     }
   };
 
+  // Main UI render block. Displays a dynamic header based on deep link status, handles loading and error fallbacks, and maps through the state to render individual product cards with their respective data and interaction buttons.
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -143,10 +148,21 @@ export default function ProductsScreen() {
             Viewing via Link - ID: {id}
           </Text>
         )}
-        <Button
-          title={`Cart (${cartCount})`}
-          onPress={() => router.push('/shoppingCart')}
-        />
+        
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 }}>
+          <Button
+            title="Sign Out"
+            color="red"
+            onPress={async () => {
+              await supabase.auth.signOut();
+              router.replace('/'); 
+            }}
+          />
+          <Button
+            title={`Cart (${cartCount})`}
+            onPress={() => router.push('/shoppingCart')}
+          />
+        </View>
       </View>
 
       {loading ? (
@@ -161,10 +177,7 @@ export default function ProductsScreen() {
             <View key={item.id} style={styles.card}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Text style={{ fontWeight: 'bold' }}>{item.name}</Text>
-                <TouchableOpacity
-                  onPress={() => toggleFavourite(item)}
-                  hitSlop={8}
-                >
+                <TouchableOpacity onPress={() => toggleFavourite(item)} hitSlop={8}>
                   <Text style={item.favourite ? styles.heartFilled : styles.heartEmpty}>
                     {item.favourite ? '♥' : '♡'}
                   </Text>
@@ -174,7 +187,6 @@ export default function ProductsScreen() {
               {item.description ? <Text>{item.description}</Text> : null}
               <Text>${Number(item.price).toFixed(2)}</Text>
               
-              {/*  Hena ben3red el Stock  */}
               <Text style={{ 
                 color: item.stock_quantity > 0 ? 'green' : 'red', 
                 fontWeight: 'bold',
@@ -183,20 +195,21 @@ export default function ProductsScreen() {
                 {item.stock_quantity !== undefined ? `In Stock: ${item.stock_quantity}` : 'Stock info unavailable'}
               </Text>
 
-              <View style={{ marginBottom: 10 }}>
-   {item.image_url ? (
-    <Image 
-      source={require('./pic.webp')} 
-      style={{ width: '100%', height: 200, borderRadius: 8, resizeMode: 'cover' }} 
-    />
-  ) : null}
-</View>
+              <View style={{ marginBottom: 10, marginTop: 10 }}>
+                {item.image_url ? (
+                  <Image 
+                    source={{ uri: item.image_url }} 
+                    style={{ width: '100%', height: 200, borderRadius: 8, resizeMode: 'cover' }} 
+                  />
+                ) : null}
+              </View>
+              
               <View style={styles.spacer} />
               
               <Button 
                 title="Add to Cart" 
                 onPress={() => addToCart(item)} 
-                disabled={item.stock_quantity <= 0} // B-disable el zowrar law el stock 0
+                disabled={item.stock_quantity <= 0} 
               />
             </View>
           ))}

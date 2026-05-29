@@ -5,7 +5,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from '../utils/supabase';
 
-const BUCKET = 'product-images';
+const BUCKET = 'images';
 
 export default function ImageUploadScreen() {
   const [image, setImage] = useState(null);
@@ -53,6 +53,7 @@ export default function ImageUploadScreen() {
     }
   };
 
+  // 🚀 EL FUNCTION EL GDEDA HENA 🚀
   const uploadImage = async () => {
     if (!image) return;
     setUploading(true);
@@ -62,27 +63,48 @@ export default function ImageUploadScreen() {
       const base64 = await FileSystem.readAsStringAsync(image, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      console.log('[upload] base64 length:', base64.length);
       const bytes = decode(base64);
-      console.log('[upload] bytes byteLength:', bytes.byteLength);
 
       const ext = image.split('.').pop()?.toLowerCase() || 'jpg';
       const path = `${Date.now()}.${ext}`;
       const contentType = ext === 'png' ? 'image/png' : 'image/jpeg';
 
+      // 1. Upload to Supabase Storage Bucket
       const { data, error } = await supabase.storage
         .from(BUCKET)
         .upload(path, bytes, { contentType, upsert: false });
 
-      console.log('[upload] response data:', data);
-      console.log('[upload] response error:', error);
-
       if (error) {
-        Alert.alert('Upload failed', error.message);
-      } else {
-        Alert.alert('Uploaded', 'Your product image has been uploaded successfully.');
-        setImage(null);
+        throw error;
       }
+
+      // 2. Get the Public URL of the uploaded image
+      const { data: publicUrlData } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(path);
+        
+      const imageUrl = publicUrlData.publicUrl;
+
+      // 3. Create a NEW Product in the Database using this image URL
+      const { error: dbError } = await supabase
+        .from('products')
+        .insert([
+          { 
+            name: 'New Custom Product', // Esm default
+            description: 'Uploaded from camera/gallery',
+            price: 99.99, // Se3r default
+            image_url: imageUrl, // B-nsave el link bta3 el sora hena
+            stock_quantity: 10 
+          }
+        ]);
+
+      if (dbError) {
+        throw dbError;
+      }
+
+      Alert.alert('Success!', 'Image uploaded AND added to your products!');
+      setImage(null);
+      
     } catch (e) {
       console.log('[upload] caught:', e);
       Alert.alert('Error', e.message ?? String(e));
@@ -111,7 +133,7 @@ export default function ImageUploadScreen() {
             title={uploading ? 'Uploading...' : 'Upload Image to Supabase'}
             onPress={uploadImage}
             disabled={uploading}
-            color="#28a745" // Giving the upload button a distinct color
+            color="#28a745"
           />
         </View>
       )}
@@ -123,7 +145,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    alignItems: 'center', // Center content horizontally
+    alignItems: 'center',
   },
   title: {
     fontSize: 20,

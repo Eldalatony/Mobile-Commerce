@@ -22,3 +22,5 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+
+// ET2AAKED MN DY EL BA3DAHA

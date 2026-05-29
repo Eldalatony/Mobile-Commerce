@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Button, Alert } from 'react-native';
 import { supabase } from '../utils/supabase';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Lazm ne3mel import hena
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Haptics from 'expo-haptics'; // <-- Import Haptics
 
 export default function CheckoutScreen() {
 
@@ -17,31 +18,57 @@ export default function CheckoutScreen() {
         return;
       }
 
-      // 2. Nehseb el total amount mn el products elly fel cart
-      const totalAmount = cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
+      // 2. Nehseb el total amount mn el products (price * quantity)
+      const totalAmount = cartItems.reduce((sum, item) => sum + ((item.price || 0) * (item.quantity || 1)), 0);
 
       // 3. N-gehez el data, w nzawed "order_items" elly 3mlnah fel Supabase
       const orderDetails = {
         total_amount: totalAmount, 
         payment_status: 'Securely Paid',
-        order_items: cartItems // Hena el sater el mohem! Bneb3at el array kolo
-        // created_at: supabase by3mlha generate lwa7do f msh lazm nb3tha
+        order_items: cartItems 
       };
 
       // 4. Bnb3t el data l table 'orders'
-      const { data, error } = await supabase
+      const { error: orderError } = await supabase
         .from('orders')
         .insert([orderDetails]);
 
-      if (error) {
-        throw error;
+      if (orderError) {
+        throw orderError;
       }
 
-      // 5. Nefaddy el cart 3ashan el order 5alas et3amal
+      // 🚀 5. EL MAGIC HENA: N-update el stock fel Supabase 🚀
+      // B-nlff 3ala kol product fel cart w n-na2as el stock bta3o
+      for (const item of cartItems) {
+        // Awel 7aga: n-geeb el stock el 7aly lel product da mn database
+        const { data: productData } = await supabase
+          .from('products')
+          .select('stock_quantity')
+          .eq('id', item.id)
+          .single();
+
+        if (productData) {
+          // Tany 7aga: Nehseb el stock el gded (Current Stock - Cart Quantity)
+          const newStock = productData.stock_quantity - item.quantity;
+          
+          // Talet 7aga: N-save el stock el gded
+          await supabase
+            .from('products')
+            .update({ stock_quantity: newStock })
+            .eq('id', item.id);
+        }
+      }
+
+      // 6. Nefaddy el cart 3ashan el order 5alas et3amal
       await AsyncStorage.removeItem('cart');
 
-      Alert.alert('✅ Done', 'Order with items saved to Supabase successfully!');
+      // 7. TRIGGER HAPTIC SUCCESS (Requirement 15)
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+      Alert.alert('✅ Done', 'Order placed! Stock updated in realtime.');
     } catch (error) {
+      // Law 7asal error ne-trigger error vibration
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       Alert.alert('❌ Error', error.message);
       console.error(error);
     }
